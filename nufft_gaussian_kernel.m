@@ -6,6 +6,7 @@ nspread=floor(-log(eps0)/(pi*(oversamp-1)/(oversamp-.5)) + .5) + 1;
 nspread=nspread*2;
 lambda=oversamp*oversamp * nspread/2 / (oversamp*(oversamp-.5));
 tau=pi/lambda;
+
 val=exp(-x.^2*tau);
 
 end
