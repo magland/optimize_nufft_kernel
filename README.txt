@@ -15,3 +15,6 @@
 % prescribed epsilon. Note that the user does not need to supply the
 % correction function (ie, fourier transform of @kern) because it is computed
 % automatically.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+To get started, run optimize_nufft_kernel.m
