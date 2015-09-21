@@ -1,4 +1,4 @@
-function optimize_nufft_kernel(kern,oversamp)
+function [errs,nspreads]=optimize_nufft_kernel(kern,kern_opts,params,oversamp,N)
 
 % This program tests a particular 1D kernel for use with nufft gridding.
 % The first input (kern) is a function. See nufft_gaussian_kernel.m for an 
@@ -21,34 +21,40 @@ function optimize_nufft_kernel(kern,oversamp)
 if nargin<1
     kern=@nufft_gaussian_kernel;
 end
-
 if nargin<2
+    params=1:10; % The range of params to test
+end;
+if nargin<3
     oversamp=2;
 end;
-
-N=360; % Theoretically it doesn't matter what we choose for N (I think)
-epsilons=10.^(-(1:12)); % The range of epsilons to test
+if nargin<4
+    N=360; % Theoretically it doesn't matter what we choose for N (I think)
+end;
 
 errs=[];
 nspreads=[];
-for ie=1:length(epsilons)
-    eps0=epsilons(ie);
-    [errs(ie),nspreads(ie)]=compute_max_error(N,oversamp,eps0,kern);
+for ip=1:length(params)
+    param0=params(ip);
+    [errs(ip),nspreads(ip)]=compute_max_error(N,oversamp,param0,kern,kern_opts);
 end;
 
-figure; semilogx(epsilons,nspreads);
-xlabel('Prescribed epsilon');
-ylabel('Prescribed kernel size');
-
-figure; loglog(epsilons,errs);
-xlabel('Prescribed epsilon');
-ylabel('Computed error');
+% figure; plot(params,nspreads);
+% xlabel('Param');
+% ylabel('Kernel size');
+% 
+% figure; semilogy(params,errs);
+% xlabel('Param');
+% ylabel('Computed error');
+% 
+% figure; semilogx(errs,nspreads);
+% xlabel('Computed error');
+% ylabel('Kernel size');
 
 end
 
-function [err,nspread]=compute_max_error(N,oversamp,eps0,kern)
+function [err,nspread]=compute_max_error(N,oversamp,param0,kern,kern_opts)
 
-[~,nspread]=kern(0,oversamp,eps0);
+[~,nspread]=kern(0,oversamp,param0,kern_opts);
 
 NN=N*oversamp;
 MM=ceil((NN+1)/2);
@@ -59,7 +65,7 @@ A0=zeros(NN,1);
 for j=ns1:ns2
     x0=MM;
     aa=round(x0);
-    A0(aa+j)=kern((aa+j-x0),oversamp,eps0);
+    A0(aa+j)=kern((aa+j-x0),oversamp,param0,kern_opts);
 end;
 B0=fftshift(fft(fftshift(A0)));
 
@@ -73,7 +79,7 @@ for io=1:length(offsets)
     
     A1=zeros(NN,1);
     for j=ns1:ns2
-        A1(aa+j)=kern((aa+j-x0),oversamp,eps0);
+        A1(aa+j)=kern((aa+j-x0),oversamp,param0,kern_opts);
     end;
     B1=fftshift(fft(fftshift(A1)));
     B1=B1./B0.*exp(-i*((1:NN)-MM)/NN*2*pi*offset)';
